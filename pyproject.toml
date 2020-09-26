@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "goldfinger"
+version = "0.1.0"
+description = "Keep track of gold and silver price and purchases thereof"
+authors = ["Ryan Tracey <ryant@hiredgnu.net>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.24.0"
+pandas = "^1.1.2"
+boto3 = "^1.15.6"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
