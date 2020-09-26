@@ -1,3 +1,7 @@
+# don't want to share this... o_O
+.env
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
