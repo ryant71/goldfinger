@@ -1,6 +1,6 @@
 # don't want to share this... o_O
 .env
-
+poetry.lock
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
