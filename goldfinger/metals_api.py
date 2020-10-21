@@ -104,8 +104,8 @@ def get_fluctuation():
     pass
 
 
-def redis_to_dataframe(symbol):
-    timeseries_data = r.hgetall(symbol)
+def redis_to_dataframe(key):
+    timeseries_data = r.hgetall(key)
     timeseries_data = {
         k.decode('utf-8'):float(v) for (k,v) in timeseries_data.items()
     }
@@ -128,21 +128,21 @@ def timeseries_to_redis(currency, start_date_str, end_date_str, symbol):
             end = today
         end_str =  end.strftime('%Y-%m-%d')
         start_str = start.strftime('%Y-%m-%d')
-        print(f'{start_str} to {end_str}')
+        start_date = end
+        print(f'{start_str} to {end_str}', end='')
         # this does a hget each iteration, but I guess that's what a cache is for
-        if not date_range_in_redis(start, symbol):
+        if not date_range_in_redis(start, currency, symbol):
             # redis does not have the keys in range
             ret = get_timeseries(currency, start_str, end_str, symbol)
         else:
             print('...already in redis')
             continue
         if not ret['success']:
-            print(ret)
+            print(f'Bad response {ret}')
             break
         rates.update(ret['rates'])
-        start_date = end
+        print(rates)
     # flatten dictionary
-    rates_to_date = {}
     rates_to_date = {
         k:v[symbol] for (k,v) in rates.items()
     }
@@ -151,8 +151,9 @@ def timeseries_to_redis(currency, start_date_str, end_date_str, symbol):
 #end_date = get_today_date()
 #start_date = get_days_ago_date(MAX_DAYS)
 
-def date_range_in_redis(start_date, symbol):
-    timeseries_data = r.hgetall(symbol)
+def date_range_in_redis(start_date, currency, symbol):
+    key = f'{symbol}-{currency}'
+    timeseries_data = r.hgetall(key)
     timeseries_data = {
         k.decode('utf-8'):float(v) for (k,v) in timeseries_data.items()
     }
@@ -166,13 +167,15 @@ if __name__=="__main__":
     yesterday = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
 
     for symbol in ['XAU', 'XAG']:
-        series = timeseries_to_redis('ZAR', '2020-01-01', '2020-10-04', symbol)
-        print(series)
-        if series:
-            try:
-                r.hmset(symbol, series[symbol])
-                print(redis_to_dataframe(symbol))
-            except redis.exceptions.DataError:
-                print('empty dictionary')
-        else:
-            print('Something went wrong')
+        for currency in ['ZAR', 'USD']:
+            key = f'{symbol}-{currency}'
+            series = timeseries_to_redis(currency, '2020-01-01', yesterday, symbol)
+            print(series)
+            if series:
+                try:
+                    r.hmset(key, series[symbol])
+                    print(redis_to_dataframe(symbol))
+                except redis.exceptions.DataError:
+                    print('empty dictionary')
+            else:
+                print('Something went wrong')
