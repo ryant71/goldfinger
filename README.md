@@ -7,7 +7,7 @@ South African Rand = ZAR
 United States Dollar = USD
 
 Response
-
+```
 {
    "date" : "2020-09-26",
    "success" : true,
@@ -23,3 +23,4 @@ Response
       "XRH" : 7.2463768115942e-05
    }
 }
+```

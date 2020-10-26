@@ -10,36 +10,23 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 import pandas as pd
-import metals_api
+import pandas_helpers
 
 from dash.dependencies import Input, Output
 
-df_xau_usd = metals_api.redis_to_dataframe('XAU-USD')
-df_xag_usd = metals_api.redis_to_dataframe('XAG-USD')
 
-# convert usd pricing
-df_xau_usd['DateValue'] = df_xau_usd.DateValue.apply(lambda x: 1/x)
-df_xag_usd['DateValue'] = df_xag_usd.DateValue.apply(lambda x: 1/x)
-
-df_xau_usd.insert(1, 'Stock', 'Gold', allow_duplicates=True)
-df_xau_usd.insert(2, 'Currency', 'USD', allow_duplicates=True)
-
-df_xag_usd.insert(1, 'Stock', 'Silver', allow_duplicates=True)
-df_xag_usd.insert(2, 'Currency', 'USD', allow_duplicates=True)
+_colorway=['#375CB1', '#FF7400', '#FFF400', '#FF0056', "#5E0DAC", '#FF4F00']
+colourmap = {
+    'Gold': '#D4AF37',
+    'Silver': '#C0C0C0'
+}
 
 
-# Add daily change column. As easy as.
-df_xau_usd['Change'] = df_xau_usd['DateValue'].diff()
+gold = pandas_helpers.redis_to_dataframe('XAU-USD')
+silver = pandas_helpers.redis_to_dataframe('XAG-USD')
 
-# Add daily change column. As easy as.
-df_xag_usd['Change'] = df_xag_usd['DateValue'].diff()
+df = pandas_helpers.concatenate_dataframes(gold, silver)
 
-
-df = pd.concat([df_xau_usd, df_xag_usd], ignore_index=True)
-# Make Date column a datetime series
-df['Date'] = pd.to_datetime(df['Date'])
-
-df.set_index('Date', inplace=True)
 
 # initialize app
 app = dash.Dash(__name__)
@@ -52,13 +39,13 @@ def get_options(list_stocks):
     return dict_list
 
 
-@app.callback(Output('timeseries', 'figure'),
-              [Input('stockselector', 'value')])
+@app.callback(Output('timeseries', 'figure'), [Input('stockselector', 'value')])
 def update_timeseries(selected_dropdown_value):
     ''' Draw traces of the feature 'value' based one the currently selected stocks '''
     # STEP 1
     trace = []
     df_sub = df
+
     # STEP 2
     # Draw and append traces for each stock
     for stock in selected_dropdown_value:
@@ -69,6 +56,7 @@ def update_timeseries(selected_dropdown_value):
                                 name=stock,
                                 textposition='bottom center')
                     )
+
     # STEP 3
     traces = [trace]
     data = [val for sublist in traces for val in sublist]
@@ -76,14 +64,19 @@ def update_timeseries(selected_dropdown_value):
     # STEP 4
     figure = {'data': data,
               'layout': go.Layout(
-                  colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400', '#FF0056'],
+                  #colorway=colorway.insert(0, colourmap[data[0]['name']]),
+                  colorway=_colorway,
                   template='plotly_dark',
                   paper_bgcolor='rgba(0, 0, 0, 0)',
                   plot_bgcolor='rgba(0, 0, 0, 0)',
                   margin={'b': 15},
                   hovermode='x',
                   autosize=True,
-                  title={'text': 'Stock Prices', 'font': {'color': 'white'}, 'x': 0.5},
+                  title={
+                      'text': 'Stock Prices',
+                      'font': {'color': 'white'},
+                      'x': 0.5
+                  },
                   xaxis={
                       'range': [df_sub.index.min(), df_sub.index.max()],
                       'type': 'date'
@@ -94,9 +87,7 @@ def update_timeseries(selected_dropdown_value):
     return figure
 
 
-
-@app.callback(Output('change', 'figure'),
-              [Input('stockselector', 'value')])
+@app.callback(Output('change', 'figure'), [Input('stockselector', 'value')])
 def update_change(selected_dropdown_value):
     ''' Draw traces of the feature 'change' based one the currently selected stocks '''
     trace = []
@@ -114,7 +105,8 @@ def update_change(selected_dropdown_value):
     # Define Figure
     figure = {'data': data,
               'layout': go.Layout(
-                  colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400', '#FF0056'],
+                  colorway=_colorway,
+                  #colorway=_colorway.insert(0, colourmap[data[0]['name']]),
                   template='plotly_dark',
                   paper_bgcolor='rgba(0, 0, 0, 0)',
                   plot_bgcolor='rgba(0, 0, 0, 0)',
@@ -140,7 +132,7 @@ app.layout = html.Div(
             children = [
                 # Define the left element
                 html.Div(
-                    className = 'four columns div-user-controls',
+                    className = 'three columns div-user-controls',
                     children = [
                         html.H2('STOCKS'),
                         html.P('Pick a stock'),
@@ -159,7 +151,7 @@ app.layout = html.Div(
                 ),
                 # Define the right element
                 html.Div(
-                    className = 'eight columns div-for-charts bg-grey',
+                    className = 'nine columns div-for-charts bg-grey',
                     children = [
                         html.Div(
                             dcc.Graph(id = 'timeseries', config = {'displayModeBar': False}, animate=True),
@@ -173,6 +165,7 @@ app.layout = html.Div(
         )
     ]
 )
+
 
 # run app
 if __name__ == '__main__':
