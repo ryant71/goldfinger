@@ -16,10 +16,11 @@ from helpers import get_today_date, get_days_ago_date, days_diff
 MAX_DAYS = 5
 API_URL = 'https://www.metals-api.com/api'
 
-ssm = boto3.client('ssm')
-access_key = ssm.get_parameter(Name='/goldfinger/api/key', WithDecryption=True)['Parameter']['Value']
+def get_access_key():
+    ssm = boto3.client('ssm')
+    return ssm.get_parameter(Name='/goldfinger/api/key', WithDecryption=True)['Parameter']['Value']
 
-r = redis.Redis()
+r = redis.Redis(host='192.168.1.21')
 
 def get_latest(currency, *symbols):
     """
@@ -163,6 +164,9 @@ def date_range_in_redis(start_date, currency, symbol):
 
 
 if __name__=="__main__":
+
+    global access_key
+    access_key = make_access_key()
 
     yesterday = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
 

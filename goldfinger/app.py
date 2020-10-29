@@ -169,4 +169,8 @@ app.layout = html.Div(
 
 # run app
 if __name__ == '__main__':
-    app.run_server(debug = True)
+
+    import os
+
+    debug = False if os.environ["DASH_DEBUG_MODE"] == "False" else True
+    app.run_server(host='0.0.0.0', port=8050, debug=debug)

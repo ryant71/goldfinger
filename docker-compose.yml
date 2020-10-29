@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+
+  redis:
+    image: redis:alpine
+    build:
+      context: redis/
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    networks:
+      node_net:
+        ipv4_address: 192.168.1.21
+    healthcheck:
+      timeout: 20s
+      interval: 10s
+      retries: 5
+      test: "redis-cli ping"
+
+  goldfinger:
+    image: python:3.8
+    build:
+      context: goldfinger/
+    ports:
+      - "8050:8050"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - DASH_DEBUG_MODE=True
+    networks:
+      node_net:
+        ipv4_address: 192.168.1.22
+
+
+networks:
+  node_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
