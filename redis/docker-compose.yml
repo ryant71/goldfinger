@@ -12,12 +12,12 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
     networks:
-      node_net:
-        ipv4_address: 192.168.1.21
+      node_net2:
+        ipv4_address: 192.168.2.21
 
 networks:
-  node_net:
+  node_net2:
     ipam:
       driver: default
       config:
-        - subnet: 192.168.1.0/24
+        - subnet: 192.168.2.0/24
