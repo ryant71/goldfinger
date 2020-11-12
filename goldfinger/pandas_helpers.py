@@ -1,13 +1,33 @@
+# -*- coding: utf-8 -*-
 
+import os
+import redis
 import pandas as pd
-import metals_api
 
 metals_dict = {
     'XAU': 'Gold',
     'XAG': 'Silver'
 }
 
-def redis_to_dataframe(metal_currency_key):
+running_in_docker= os.environ.get('RUNNING_IN_DOCKER', False)
+
+if running_in_docker:
+    r = redis.Redis(host='192.168.1.21')
+else:
+    r = redis.Redis(host='127.0.0.1')
+
+
+def redis_to_dataframe(key):
+    timeseries_data = r.hgetall(key)
+    timeseries_data = {
+        k.decode('utf-8'):float(v) for (k,v) in timeseries_data.items()
+    }
+    df = pd.DataFrame(timeseries_data.items(), columns=['Date', 'DateValue'])
+    pd.to_datetime(df['Date'])
+    return df
+
+
+def get_mangled_dataframe(metal_currency_key):
     """
     Parameter: The key in Redis.
                E.g. XAU-USD
@@ -16,7 +36,7 @@ def redis_to_dataframe(metal_currency_key):
     currency = metal_currency_key.split('-')[1]
     metal = metal_currency_key.split('-')[0]
 
-    df = metals_api.redis_to_dataframe(metal_currency_key)
+    df = redis_to_dataframe(metal_currency_key)
 
     # convert usd pricing
     if currency == 'USD':

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 We return the values based in the base currency.
 For example, for 1 USD the return is a number like 0.000634 for Gold (XAU).
@@ -16,11 +18,11 @@ from helpers import get_today_date, get_days_ago_date, days_diff
 MAX_DAYS = 5
 API_URL = 'https://www.metals-api.com/api'
 
+
 def get_access_key():
     ssm = boto3.client('ssm')
     return ssm.get_parameter(Name='/goldfinger/api/key', WithDecryption=True)['Parameter']['Value']
 
-r = redis.Redis(host='192.168.1.21')
 
 def get_latest(currency, *symbols):
     """
@@ -105,16 +107,6 @@ def get_fluctuation():
     pass
 
 
-def redis_to_dataframe(key):
-    timeseries_data = r.hgetall(key)
-    timeseries_data = {
-        k.decode('utf-8'):float(v) for (k,v) in timeseries_data.items()
-    }
-    df = pd.DataFrame(timeseries_data.items(), columns=['Date', 'DateValue'])
-    pd.to_datetime(df['Date'])
-    return df
-
-
 def timeseries_to_redis(currency, start_date_str, end_date_str, symbol):
     today = datetime.today()
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
@@ -152,6 +144,7 @@ def timeseries_to_redis(currency, start_date_str, end_date_str, symbol):
 #end_date = get_today_date()
 #start_date = get_days_ago_date(MAX_DAYS)
 
+
 def date_range_in_redis(start_date, currency, symbol):
     key = f'{symbol}-{currency}'
     timeseries_data = r.hgetall(key)
@@ -165,8 +158,15 @@ def date_range_in_redis(start_date, currency, symbol):
 
 if __name__=="__main__":
 
+    global r
     global access_key
+
     access_key = make_access_key()
+
+    try:
+        r = redis.Redis(host='192.168.1.21')
+    except ConnectionRefusedError:
+        r = redis.Redis(host='127.0.0.1')
 
     yesterday = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
 
