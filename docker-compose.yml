@@ -24,15 +24,16 @@ services:
       context: goldfinger/
     ports:
       - "8050:8050"
+      - "5000:5000"
     depends_on:
       redis:
         condition: service_healthy
     environment:
+      - RUNNING_IN_DOCKER=True
       - DASH_DEBUG_MODE=True
     networks:
       node_net:
         ipv4_address: 192.168.1.22
-
 
 networks:
   node_net:
