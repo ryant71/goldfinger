@@ -6,6 +6,7 @@ For example, for 1 USD the return is a number like 0.000634 for Gold (XAU).
 To get the gold rate in USD: 1/0.000634= 1577.28 USD
 """
 
+import os
 import math
 import boto3
 import redis
@@ -14,6 +15,7 @@ import pandas as pd
 
 from datetime import date, datetime, timedelta
 from helpers import get_today_date, get_days_ago_date, days_diff
+from pandas_helpers import redis_to_dataframe
 
 MAX_DAYS = 5
 API_URL = 'https://www.metals-api.com/api'
@@ -161,11 +163,13 @@ if __name__=="__main__":
     global r
     global access_key
 
-    access_key = make_access_key()
+    access_key = get_access_key()
 
-    try:
+    running_in_docker= os.environ.get('RUNNING_IN_DOCKER', False)
+
+    if running_in_docker:
         r = redis.Redis(host='192.168.1.21')
-    except ConnectionRefusedError:
+    else:
         r = redis.Redis(host='127.0.0.1')
 
     yesterday = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
@@ -183,3 +187,4 @@ if __name__=="__main__":
                     print('empty dictionary')
             else:
                 print('Something went wrong')
+    r.save()
