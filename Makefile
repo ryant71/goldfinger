@@ -1,16 +1,20 @@
 .PHONY: build stop attach
 
-build:
-	docker build -t myapp .
+build-app:
+	docker build -t dash goldfinger
 
-run:
-	docker run --publish 8050:8050 --name myapp --rm myapp
+run-app:
+	docker run --publish 8050:8050 --name dash --rm dash
 
-stop:
-	docker stop myapp
+stop-app:
+	docker stop dash
 
-attach:
-	docker exec -it myapp bash
+attach-app:
+	docker exec -it dash bash
 
-test:
-	docker exec -it myapp 'curl localhost'
+test-app:
+	docker exec -it dash 'curl localhost'
+
+build-redis:
+	docker build -t redis redis
+

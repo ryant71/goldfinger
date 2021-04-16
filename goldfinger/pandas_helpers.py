@@ -45,6 +45,7 @@ def get_mangled_dataframe(metal_currency_key):
     # Add description columns
     df.insert(1, 'Stock', metals_dict[metal], allow_duplicates=True)
     df.insert(2, 'Currency', currency, allow_duplicates=True)
+    df.insert(3, 'Stock-Currency', metals_dict[metal]+'-'+currency, allow_duplicates=True)
 
     # Add daily change column. As easy as.
     df['Change'] = df['DateValue'].diff()
@@ -58,5 +59,5 @@ def get_mangled_dataframe(metal_currency_key):
     return df
 
 
-def concatenate_dataframes(frame_one, frame_two, ignore_index=False):
-    return pd.concat([frame_one, frame_two], ignore_index)
+def concatenate_dataframes(args, ignore_index=False):
+    return pd.concat(args, ignore_index)
