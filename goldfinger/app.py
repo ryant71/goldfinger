@@ -14,10 +14,10 @@ import pandas_helpers
 from dash.dependencies import Input, Output
 
 
-_colorway=['#375CB1', '#FF7400', '#FFF400', '#FF0056', "#5E0DAC", '#FF4F00']
+_colorway = ['#D4AF37', '#C0C0C0', '#375CB1', '#FF7400', '#FFF400', '#FF0056', "#5E0DAC", '#FF4F00']
 colourmap = {
-    'Gold': '#D4AF37',
-    'Silver': '#C0C0C0'
+    'GoldUSD': '#D4AF37',
+    'SilverUSD': '#C0C0C0'
 }
 
 
@@ -27,9 +27,11 @@ app = dash.Dash(__name__, server=server)
 
 
 def make_data_frame():
-    gold = pandas_helpers.get_mangled_dataframe('XAU-USD')
-    silver = pandas_helpers.get_mangled_dataframe('XAG-USD')
-    return pandas_helpers.concatenate_dataframes(gold, silver)
+    gold_usd = pandas_helpers.get_mangled_dataframe('XAU-USD')
+    silver_usd = pandas_helpers.get_mangled_dataframe('XAG-USD')
+    gold_zar = pandas_helpers.get_mangled_dataframe('XAU-ZAR')
+    silver_zar = pandas_helpers.get_mangled_dataframe('XAG-ZAR')
+    return pandas_helpers.concatenate_dataframes([gold_usd, silver_usd, gold_zar, silver_zar])
 
 
 def get_options(list_stocks):
@@ -49,8 +51,8 @@ def update_timeseries(selected_dropdown_value):
     # STEP 2
     # Draw and append traces for each stock
     for stock in selected_dropdown_value:
-        trace.append(go.Scatter(x=df_sub[df_sub['Stock'] == stock].index,
-                                y=df_sub[df_sub['Stock'] == stock]['DateValue'],
+        trace.append(go.Scatter(x=df_sub[df_sub['Stock-Currency'] == stock].index,
+                                y=df_sub[df_sub['Stock-Currency'] == stock]['DateValue'],
                                 mode='lines',
                                 opacity=0.7,
                                 name=stock,
@@ -94,8 +96,8 @@ def update_change(selected_dropdown_value):
     df_sub = df
     # Draw and append traces for each stock
     for stock in selected_dropdown_value:
-        trace.append(go.Scatter(x=df_sub[df_sub['Stock'] == stock].index,
-                                y=df_sub[df_sub['Stock'] == stock]['Change'],
+        trace.append(go.Scatter(x=df_sub[df_sub['Stock-Currency'] == stock].index,
+                                y=df_sub[df_sub['Stock-Currency'] == stock]['Change'],
                                 mode='lines',
                                 opacity=0.7,
                                 name=stock,
@@ -139,9 +141,9 @@ app.layout = html.Div(
                         html.Div(className='div-for-dropdown',
                             children=[
                                 dcc.Dropdown(id='stockselector',
-                                             options=get_options(df['Stock'].unique()),
+                                             options=get_options(df['Stock-Currency'].unique()),
                                              multi=True,
-                                             value=[df['Stock'].sort_values()[0]],
+                                             value=[df['Stock-Currency'].sort_values()[0]],
                                              style={'backgroundColor': '#1E1E1E'},
                                              className='stockselector')
                             ],

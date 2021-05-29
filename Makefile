@@ -1,16 +1,23 @@
-.PHONY: build stop attach
+.PHONY: list
 
-build:
-	docker build -t myapp .
+list:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
-run:
-	docker run --publish 8050:8050 --name myapp --rm myapp
+build-app:
+	docker build -t dash goldfinger
 
-stop:
-	docker stop myapp
+run-app:
+	docker run --publish 8050:8050 --name dash --rm dash
 
-attach:
-	docker exec -it myapp bash
+stop-app:
+	docker stop dash
 
-test:
-	docker exec -it myapp 'curl localhost'
+attach-app:
+	docker exec -it dash bash
+
+test-app:
+	docker exec -it dash 'curl localhost'
+
+build-redis:
+	docker build -t redis redis
+
