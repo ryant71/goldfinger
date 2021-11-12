@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
@@ -26,6 +25,7 @@ server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
 
+@app.callback(Input('interval-component', 'n_intervals'))
 def make_data_frame():
     gold_usd = pandas_helpers.get_mangled_dataframe('XAU-USD')
     silver_usd = pandas_helpers.get_mangled_dataframe('XAG-USD')
@@ -126,8 +126,19 @@ def update_change(selected_dropdown_value):
 
 df = make_data_frame()
 
+
+
+
 # define app
 app.layout = html.Div(
+
+    dcc.Interval(
+        id='interval-component',
+        interval=15000,
+        n_intervals=0
+    )
+
+
     children = [
         html.Div(
             className = 'row',

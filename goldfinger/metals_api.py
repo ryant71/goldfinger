@@ -177,7 +177,7 @@ if __name__=="__main__":
     for symbol in ['XAU', 'XAG']:
         for currency in ['ZAR', 'USD']:
             key = f'{symbol}-{currency}'
-            series = timeseries_to_redis(currency, '2020-01-01', yesterday, symbol)
+            series = timeseries_to_redis(currency, start_date_str='2020-07-01', end_date_str=yesterday, symbol=symbol)
             print(series)
             if series:
                 try:
