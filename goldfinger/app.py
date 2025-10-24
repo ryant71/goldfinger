@@ -136,8 +136,7 @@ app.layout = html.Div(
         id='interval-component',
         interval=15000,
         n_intervals=0
-    )
-
+    ),
 
     children = [
         html.Div(
